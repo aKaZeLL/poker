@@ -9,25 +9,18 @@ type Carta struct {
 	Seme   string
 }
 
-func (c Carta) Value2Color(carta *Carta) string {
-	semi := map[int]string{1: "A", 11: "J", 12: "Q", 13: "K"}
-	switch carta.Valore {
+func (c Carta) IsFigure() bool {
+	switch c.Valore {
 	case 1, 11, 12, 13:
-		return semi[carta.Valore]
+		return true
 	default:
-		return carta.Seme
+		return false
 	}
 }
 
-func (c Carta) Color2Value(carta *Carta) int {
-	valori := map[string]int{"A": 1, "J": 11, "Q": 12, "k": 13}
-
-	switch carta.Seme {
-	case "A", "J", "Q", "K":
-		return valori[carta.Seme]
-	default:
-		return carta.Valore
-	}
+func (c Carta) ToFig() string {
+	semi := map[int]string{1: "A", 11: "J", 12: "Q", 13: "K"}
+	return semi[c.Valore]
 }
 
 func New(v int, s string) *Carta {
@@ -53,7 +46,10 @@ func main() {
 
 	var carte [52]*Carta = CreaMazzo()
 	for _, k := range carte {
-		fmt.Println(k.Valore, k.Seme)
+		if k.IsFigure() {
+			fmt.Println(k.ToFig(), k.Seme)
+		} else {
+			fmt.Println(k.Valore, k.Seme)
+		}
 	}
-
 }
