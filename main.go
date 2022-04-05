@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 type Carta struct {
@@ -28,17 +30,20 @@ func New(v int, s string) *Carta {
 }
 
 func CreaMazzo() [52]*Carta {
-	var colori []string
+	colori := []string{"Cuori", "Quadri", "Picche", "Fiori"}
 	var mazzo [52]*Carta
-	var i int
-	colori = append(colori, "Cuori", "Quadri", "Picche", "Fiori")
-	i = 0
+	i := 0
 	for _, c := range colori {
 		for num := 1; num <= 13; num++ {
 			mazzo[i] = New(num, c)
 			i++
 		}
 	}
+	//Mescola
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(mazzo), func(i, j int) {
+		mazzo[i], mazzo[j] = mazzo[j], mazzo[i]
+	})
 	return mazzo
 }
 
