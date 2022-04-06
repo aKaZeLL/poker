@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCarta_String(t *testing.T) {
@@ -11,6 +12,11 @@ func TestCarta_String(t *testing.T) {
 		Seme           string
 		ExpectedString string
 	}{
+		"A di picche": {
+			Valore:         1,
+			Seme:           "picche",
+			ExpectedString: "A",
+		},
 		"Q di fiori": {
 			Valore:         12,
 			Seme:           "fiori",
@@ -25,7 +31,7 @@ func TestCarta_String(t *testing.T) {
 
 	for testName, testCase := range tests {
 		t.Run(testName, func(st *testing.T) {
-			c := Carta{
+			c := &Carta{
 				Valore: testCase.Valore,
 				Seme:   testCase.Seme,
 			}
