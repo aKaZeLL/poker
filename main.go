@@ -16,29 +16,24 @@ func New(v int, s string) *Card {
 }
 
 func (c Card) String() string {
-	if c.Value == 1 {
-		return fmt.Sprintf("A %s", c.Seed)
+
+	if c.Value > 1 && c.Value < 11 {
+		return fmt.Sprintf("%3d di %5s", c.Value, c.Seed)
 	}
 
-	if c.Value < 11 {
-		return fmt.Sprintf("%d %s", c.Value, c.Seed)
-	}
-
-	semi := map[int]string{1: "A", 11: "J", 12: "Q", 13: "K"}
-	return fmt.Sprintf("%s %s", semi[c.Value], c.Seed)
+	seeds := map[int]string{1: "A", 11: "J", 12: "Q", 13: "K"}
+	return fmt.Sprintf("%2s di %5s", seeds[c.Value], c.Seed)
 }
 
-func CreateDeck() [52]*Card {
+func CreateDeck() []*Card {
 	seeds := []string{"Cuori", "Quadri", "Picche", "Fiori"}
-	var deck [52]*Card
-	i := 0
+	var deck []*Card
 	for _, c := range seeds {
 		for num := 1; num <= 13; num++ {
-			deck[i] = New(num, c)
-			i++
+			deck = append(deck, New(num, c))
 		}
 	}
-	//Mescola
+	//Mescola il mazzo di carte
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(deck), func(i, j int) {
 		deck[i], deck[j] = deck[j], deck[i]
@@ -46,9 +41,26 @@ func CreateDeck() [52]*Card {
 	return deck
 }
 
-func main() {
-	var deck = CreateDeck()
-	for _, value := range deck {
-		fmt.Println(value.String())
+func DrawHand(deck []*Card) ([]*Card, []*Card) {
+	temp := deck[:5]
+	deck = deck[5:]
+	return temp , deck
+}
+
+func Print(hand []*Card) {
+	for _, h:= range hand {
+		fmt.Print(h.String())
 	}
+}
+
+func main() {
+
+	var deck = CreateDeck()
+
+	hand, deck := DrawHand(deck)
+	
+	Print(hand)
+//	for _, value := range deck {
+//		fmt.Println(value.String())
+//	}
 }
