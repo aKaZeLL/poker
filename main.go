@@ -16,12 +16,16 @@ func New(v int, s string) *Carta {
 }
 
 func (c Carta) String() string {
+	if c.Valore == 1 {
+		return fmt.Sprintf("A %s", c.Seme)
+	}
+
 	if c.Valore < 11 {
-		return fmt.Sprintf("%d", c.Valore)
+		return fmt.Sprintf("%d %s", c.Valore, c.Seme)
 	}
 
 	semi := map[int]string{1: "A", 11: "J", 12: "Q", 13: "K"}
-	return semi[c.Valore]
+	return fmt.Sprintf("%s %s", semi[c.Valore], c.Seme)
 }
 
 func CreaMazzo() [52]*Carta {

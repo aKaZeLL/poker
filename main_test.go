@@ -15,17 +15,17 @@ func TestCarta_String(t *testing.T) {
 		"A di picche": {
 			Valore:         1,
 			Seme:           "picche",
-			ExpectedString: "A",
+			ExpectedString: "A picche",
 		},
 		"Q di fiori": {
 			Valore:         12,
 			Seme:           "fiori",
-			ExpectedString: "Q",
+			ExpectedString: "Q fiori",
 		},
 		"K di cuori": {
 			Valore:         13,
 			Seme:           "cuori",
-			ExpectedString: "K",
+			ExpectedString: "K cuori",
 		},
 	}
 
