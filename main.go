@@ -17,7 +17,7 @@ func New(v int, s string) *Carta {
 
 func (c Carta) String() string {
 	if c.Valore < 11 {
-		return fmt.Sprintf("%s", c.Valore)
+		return fmt.Sprintf("%d", c.Valore)
 	}
 
 	semi := map[int]string{1: "A", 11: "J", 12: "Q", 13: "K"}
