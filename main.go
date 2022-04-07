@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"time"
 	"sort"
+	"time"
 )
 
 type Card struct {
 	Value int
-	Seed   string
+	Seed  string
 }
 
 type Deck struct {
@@ -38,12 +38,12 @@ func CreateDeck(start int) *Deck {
 	return &Deck{Cards: deck}
 }
 
-func (c Card) String() string {
-	if c.Value > 1 && c.Value < 11 {
-		return fmt.Sprintf("%3d di %5s", c.Value, c.Seed)
+func String(n int) string {
+	if n > 1 && n < 11 {
+		return fmt.Sprintf("%d", n)
 	}
 	seeds := map[int]string{11: "J", 12: "Q", 13: "K", 14: "A"}
-	return fmt.Sprintf("%2s di %5s", seeds[c.Value], c.Seed)
+	return seeds[n]
 }
 
 func (d *Deck) DrawHand(n int) []*Card {
@@ -73,9 +73,9 @@ func StructToArray(hand []*Card) []int {
 func Straight(hand []*Card) bool {
 	array := StructToArray(hand)
 	sort.Ints(array)
-	
-	for i:=0; i<len(hand)-1; i++ {
-		if array[i]!=array[i+1]-1 {
+
+	for i := 0; i < len(hand)-1; i++ {
+		if array[i] != array[i+1]-1 {
 			return false
 		}
 	}
@@ -90,50 +90,129 @@ func Royale(hand []*Card) bool {
 	}
 }
 
-func count(hand []*Card, q int) int {
+func Count(hand []*Card, q int) int {
 	array := StructToArray(hand)
 
-	for i:=0; i<len(array)-1; i++ {
+	for i := 0; i < len(array)-1; i++ {
 		cnt := 1
-		for x:=i+1; x<len(array); i++ {
-			if array[i]==array[x] {
-				cnt+=1
+		for x := i + 1; x < len(array); x++ {
+			if array[i] == array[x] {
+				cnt += 1
 			}
 		}
-		if cnt==q {
+		if cnt == q {
 			return array[i]
-			}
+		}
 	}
 	return 0
 }
 
+func Poker(hand []*Card) int {
+	score := Count(hand, 4)
+	if score != 0 {
+		return score
+	}
+	return 0
+}
+
+func WithOutElem(wOe []*Card, elem int) []*Card {
+	var SubHand []*Card
+	for _, value := range wOe {
+		if value.Value != elem {
+			SubHand = append(SubHand, value)
+		}
+	}
+	return SubHand
+}
+
+func Full(hand []*Card) (int, int) {
+	tri := Count(hand, 3)
+	if tri != 0 {
+		if sub := WithOutElem(hand, tri); sub[0].Value == sub[1].Value {
+			return tri, sub[0].Value
+		}
+	}
+	return 0, 0
+}
+
+func Tris(hand []*Card) int {
+	score := Count(hand, 3)
+	if score != 0 {
+		return score
+	}
+	return 0
+}
+
+func Pair(hand []*Card) int {
+	score := Count(hand, 2)
+	if score != 0 {
+		return score
+	}
+	return 0
+}
+
+func Double(hand []*Card) (int, int) {
+	couple := Count(hand, 2)
+	if couple != 0 {
+		sub := WithOutElem(hand, couple)
+		double := Count(sub, 2)
+		if double != 0 {
+			return couple, double
+		}
+	}
+	return 0, 0
+}
+
+func CheckScore(hand []*Card) int {
+	if Royale(hand) {
+		fmt.Println("Scala Reale!")
+		return 10
+	} else if s := Poker(hand); s != 0 {
+		fmt.Println("Poker di", String(s))
+		return 9
+	} else if Flush(hand) {
+		fmt.Println("Colore")
+		return 8
+	} else if s, s2 := Full(hand); s != 0 {
+		fmt.Println("Full di", String(s), String(s2))
+		return 7
+	} else if Straight(hand) {
+		fmt.Println("Scala Semplice")
+		return 6
+	} else if s := Tris(hand); s != 0 {
+		fmt.Println("Tris di", String(s))
+		return 5
+	} else if s, s2 := Double(hand); s != 0 {
+		fmt.Println("Doppia coppia di", String(s), String(s2))
+		return 4
+	} else if s := Pair(hand); s != 0 {
+		fmt.Println("Coppia di", String(s))
+		return 3
+	}
+	fmt.Println("Carta Alta")
+	return 2
+
+}
+
 func Print(hand []*Card) {
-	for _, h:= range hand {
-		fmt.Print(h.String())
+	for _, h := range hand {
+		fmt.Printf("%3s di %5s", String(h.Value), h.Seed)
 	}
 	fmt.Println()
 }
 
 /*
-reale OK
-poker
-colore OK
-full
-scala semplice OK
-tris
-doppia coppia
-coppia
+da implementare
 carta alta
 */
 
 func main() {
 
-	var deck = CreateDeck(7)
-//	for i:=1; i<5; i++ {
-	hand := deck.DrawHand(5)
+	var deck = CreateDeck(9)
+	for i := 1; i < 5; i++ {
+		hand := deck.DrawHand(5)
+		Print(hand)
+		fmt.Println("Punteggio:", CheckScore(hand))
 
-	Print(hand)
-
-
-//}
+	}
 }
