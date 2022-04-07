@@ -70,20 +70,20 @@ func StructToArray(hand []*Card) []int {
 	return array
 }
 
-func Straight(hand []*Card) bool {
+func Straight(hand []*Card) int {
 	array := StructToArray(hand)
 	sort.Ints(array)
 
 	for i := 0; i < len(hand)-1; i++ {
 		if array[i] != array[i+1]-1 {
-			return false
+			return 0
 		}
 	}
-	return true
+	return array[len(array)-1]
 }
 
 func Royale(hand []*Card) bool {
-	if Straight(hand) && Flush(hand) {
+	if Straight(hand) != 0 && Flush(hand) {
 		return true
 	} else {
 		return false
@@ -157,7 +157,11 @@ func Double(hand []*Card) (int, int) {
 		sub := WithOutElem(hand, couple)
 		double := Count(sub, 2)
 		if double != 0 {
-			return couple, double
+			if couple > double {
+				return couple, double
+			} else {
+				return double, couple
+			}
 		}
 	}
 	return 0, 0
@@ -166,28 +170,28 @@ func Double(hand []*Card) (int, int) {
 func CheckScore(hand []*Card) int {
 	if Royale(hand) {
 		fmt.Println("Scala Reale!")
-		return 10
+		return 200
 	} else if s := Poker(hand); s != 0 {
 		fmt.Println("Poker di", String(s))
-		return 9
+		return 150 + s
 	} else if Flush(hand) {
 		fmt.Println("Colore")
-		return 8
+		return 120
 	} else if s, s2 := Full(hand); s != 0 {
 		fmt.Println("Full di", String(s), String(s2))
-		return 7
-	} else if Straight(hand) {
+		return 90 + s + s2
+	} else if s := Straight(hand); s != 0 {
 		fmt.Println("Scala Semplice")
-		return 6
+		return 75 + s
 	} else if s := Tris(hand); s != 0 {
 		fmt.Println("Tris di", String(s))
-		return 5
+		return 60 + s
 	} else if s, s2 := Double(hand); s != 0 {
 		fmt.Println("Doppia coppia di", String(s), String(s2))
-		return 4
+		return 30 + s + s2
 	} else if s := Pair(hand); s != 0 {
 		fmt.Println("Coppia di", String(s))
-		return 3
+		return 15 + s
 	}
 	fmt.Println("Carta Alta")
 	return 2
@@ -201,10 +205,36 @@ func Print(hand []*Card) {
 	fmt.Println()
 }
 
-/*
-da implementare
-carta alta
-*/
+func ChangeCards(hand []*Card, deck *Deck) []*Card {
+	var n int
+	var c1, c2, c3, c4 int
+	var indici []int
+
+	fmt.Print("Quante carte vuoi cambiare: ")
+	fmt.Scanln(&n)
+
+	if n > 0 && n < 5 {
+		fmt.Print("Inserisci posizione delle carta da tenere: ")
+		fmt.Scanln(&c1, &c2, &c3, &c4)
+		indici = append(indici, c1, c2, c3, c4)
+
+		drawNewCard := deck.DrawHand(n)
+
+		n = 5 - n
+		i := 0
+		var newHand []*Card
+		for n > 0 {
+			n--
+			newHand = append(newHand, hand[indici[i]-1])
+			i++
+		}
+		fmt.Print("Carte ricevute: ")
+		Print(drawNewCard)
+		newHand = append(newHand, drawNewCard...)
+		return newHand
+	}
+	return hand
+}
 
 func main() {
 
@@ -212,7 +242,9 @@ func main() {
 	for i := 1; i < 5; i++ {
 		hand := deck.DrawHand(5)
 		Print(hand)
-		fmt.Println("Punteggio:", CheckScore(hand))
+		changed := (ChangeCards(hand, deck))
+		Print(changed)
+		fmt.Println(" Punteggio:", CheckScore(changed))
 
 	}
 }
