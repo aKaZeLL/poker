@@ -23,7 +23,7 @@ func New(v int, s string) *Card {
 
 //Costruttore struttura Deck
 func CreateDeck(start int) *Deck {
-	seeds := []string{"Cuori", "Quadri", "Picche", "Fiori"}
+	seeds := []string{"♥", "♦", "♠", "♣"}
 	var deck []*Card
 	for _, c := range seeds {
 		for num := start; num <= 14; num++ {
@@ -200,7 +200,7 @@ func CheckScore(hand []*Card) int {
 
 func Print(hand []*Card) {
 	for _, h := range hand {
-		fmt.Printf("%3s di %5s", String(h.Value), h.Seed)
+		fmt.Printf("%s%s ", String(h.Value), h.Seed)
 	}
 	fmt.Println()
 }
