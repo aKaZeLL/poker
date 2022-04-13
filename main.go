@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type Player struct {
+	Name      string
+	Hand      []*Card
+	Value     map[string]int
+	PointName string
+}
+
 type Card struct {
 	Value int
 	Seed  string
@@ -38,12 +45,31 @@ func CreateDeck(start int) *Deck {
 	return &Deck{Cards: deck}
 }
 
-func String(n int) string {
-	if n > 1 && n < 11 {
-		return fmt.Sprintf("%d", n)
+//Costruttore giocatore
+func CreatePlayer(name string, h []*Card) *Player {
+	v := map[string]int{"Total": 0, "BestCard": 0, "Best2nd": 0, "Kicker": 0}
+	return &Player{Name: name, Hand: h, Value: v}
+}
+
+// mancano colore, reale
+//metodi
+
+func (p Player) Draw(other Player, elem int) Player {
+	for {
+		p.Hand = WithOutElem(p.Hand, elem)
+		other.Hand = WithOutElem(other.Hand, elem)
+		if len(p.Hand) == 0 {
+			break
+		}
+
+		p.CheckScore()
+		other.CheckScore()
+
+		if winner := p.Valutation(other, "BestCard"); winner.Name != "pareggio" {
+			return winner
+		}
 	}
-	seeds := map[int]string{11: "J", 12: "Q", 13: "K", 14: "A"}
-	return seeds[n]
+	return Player{Name: "pareggio"}
 }
 
 func (d *Deck) DrawHand(n int) []*Card {
@@ -52,14 +78,56 @@ func (d *Deck) DrawHand(n int) []*Card {
 	return temp
 }
 
-func Flush(hand []*Card) bool {
-	color := hand[0].Seed
-	for _, m := range hand {
-		if m.Seed != color {
-			return false
+//cambio carte mano
+func (p *Player) ChangeCards(deck *Deck) {
+	var n int
+	var c1, c2, c3, c4 int
+	var indici []int
+
+	fmt.Print(p.Name, " quante carte vuoi cambiare: ")
+	fmt.Scanln(&n)
+
+	if n > 0 && n < 5 {
+		fmt.Print("Inserisci posizione delle carta da tenere: ")
+		fmt.Scanln(&c1, &c2, &c3, &c4)
+		indici = append(indici, c1, c2, c3, c4)
+
+		drawNewCard := deck.DrawHand(n)
+
+		n = 5 - n
+		i := 0
+		var newHand []*Card
+		for n > 0 {
+			n--
+			newHand = append(newHand, p.Hand[indici[i]-1])
+			i++
 		}
+		fmt.Print("Carte ricevute: ")
+		for _, v := range drawNewCard {
+			fmt.Printf("%s%s ", String(v.Value), v.Seed)
+		}
+		fmt.Println()
+		newHand = append(newHand, drawNewCard...)
+		p.Hand = newHand
 	}
-	return true
+}
+
+//stampa dati struttura in output
+func (p Player) Print() {
+	fmt.Print("Mano di ", p.Name, ": ")
+	for _, h := range p.Hand {
+		fmt.Printf("%s%s ", String(h.Value), h.Seed)
+	}
+	fmt.Println()
+}
+
+//funzioni di supporto
+func String(n int) string {
+	if n > 1 && n < 11 {
+		return fmt.Sprintf("%d", n)
+	}
+	seeds := map[int]string{11: "J", 12: "Q", 13: "K", 14: "A"}
+	return seeds[n]
 }
 
 func StructToArray(hand []*Card) []int {
@@ -68,26 +136,6 @@ func StructToArray(hand []*Card) []int {
 		array = append(array, h.Value)
 	}
 	return array
-}
-
-func Straight(hand []*Card) int {
-	array := StructToArray(hand)
-	sort.Ints(array)
-
-	for i := 0; i < len(hand)-1; i++ {
-		if array[i] != array[i+1]-1 {
-			return 0
-		}
-	}
-	return array[len(array)-1]
-}
-
-func Royale(hand []*Card) bool {
-	if Straight(hand) != 0 && Flush(hand) {
-		return true
-	} else {
-		return false
-	}
 }
 
 func Count(hand []*Card, q int) int {
@@ -107,14 +155,6 @@ func Count(hand []*Card, q int) int {
 	return 0
 }
 
-func Poker(hand []*Card) int {
-	score := Count(hand, 4)
-	if score != 0 {
-		return score
-	}
-	return 0
-}
-
 func WithOutElem(wOe []*Card, elem int) []*Card {
 	var SubHand []*Card
 	for _, value := range wOe {
@@ -123,6 +163,57 @@ func WithOutElem(wOe []*Card, elem int) []*Card {
 		}
 	}
 	return SubHand
+}
+
+func MaxInArray(array []int) int {
+	max := 0
+	for _, i := range array {
+		if i > max {
+			max = i
+		}
+	}
+	return max
+}
+
+//Funzioni valutazione punteggio mano
+func Flush(hand []*Card) int {
+	color := hand[0].Seed
+	for _, m := range hand {
+		if m.Seed != color {
+			return 0
+		}
+	}
+	array := StructToArray(hand)
+	sort.Ints(array)
+	return array[len(array)-1]
+}
+
+func Straight(hand []*Card) int {
+	array := StructToArray(hand)
+	sort.Ints(array)
+
+	for i := 0; i < len(hand)-1; i++ {
+		if array[i] != array[i+1]-1 {
+			return 0
+		}
+	}
+	return array[len(array)-1]
+}
+
+func Royale(hand []*Card) int {
+	if v := Straight(hand); (v != 0) && Flush(hand) != 0 {
+		return v
+	} else {
+		return 0
+	}
+}
+
+func Poker(hand []*Card) int {
+	score := Count(hand, 4)
+	if score != 0 {
+		return score
+	}
+	return 0
 }
 
 func Full(hand []*Card) (int, int) {
@@ -151,100 +242,126 @@ func Pair(hand []*Card) int {
 	return 0
 }
 
-func Double(hand []*Card) (int, int) {
+func Double(hand []*Card) (int, int, int) {
 	couple := Count(hand, 2)
 	if couple != 0 {
 		sub := WithOutElem(hand, couple)
 		double := Count(sub, 2)
 		if double != 0 {
+			kicker := StructToArray(WithOutElem(hand, double))
 			if couple > double {
-				return couple, double
+				return couple, double, kicker[0]
 			} else {
-				return double, couple
+				return double, couple, kicker[0]
 			}
 		}
 	}
-	return 0, 0
+	return 0, 0, 0
 }
 
-func CheckScore(hand []*Card) int {
-	if Royale(hand) {
-		fmt.Println("Scala Reale!")
-		return 200
-	} else if s := Poker(hand); s != 0 {
-		fmt.Println("Poker di", String(s))
-		return 150 + s
-	} else if Flush(hand) {
-		fmt.Println("Colore")
-		return 120
-	} else if s, s2 := Full(hand); s != 0 {
-		fmt.Println("Full di", String(s), String(s2))
-		return 90 + s + s2
-	} else if s := Straight(hand); s != 0 {
-		fmt.Println("Scala Semplice")
-		return 75 + s
-	} else if s := Tris(hand); s != 0 {
-		fmt.Println("Tris di", String(s))
-		return 60 + s
-	} else if s, s2 := Double(hand); s != 0 {
-		fmt.Println("Doppia coppia di", String(s), String(s2))
-		return 30 + s + s2
-	} else if s := Pair(hand); s != 0 {
-		fmt.Println("Coppia di", String(s))
-		return 15 + s
-	}
-	fmt.Println("Carta Alta")
-	return 2
-
+func HighCard(hand []*Card) int {
+	array := StructToArray(hand)
+	return MaxInArray(array)
 }
 
-func Print(hand []*Card) {
-	for _, h := range hand {
-		fmt.Printf("%s%s ", String(h.Value), h.Seed)
+//Valutazione finale punteggio
+func (p *Player) CheckScore() {
+	v := p.Value
+	if v["BestCard"] = Royale(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Scala Reale"
+		v["Total"] = 9
+	} else if v["BestCard"] = Poker(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Poker di " + String(v["BestCard"])
+		v["Total"] = 8
+	} else if v["BestCard"] = Flush(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Colore a " + p.Hand[0].Seed
+		v["Total"] = 7
+	} else if v["BestCard"], v["Best2nd"] = Full(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Full di " + String(v["BestCard"]) + String(v["Best2nd"])
+		v["Total"] = 6
+	} else if v["BestCard"] = Straight(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Scala Semplice"
+		v["Total"] = 5
+	} else if v["BestCard"] = Tris(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Tris di " + String(v["BestCard"])
+		v["Total"] = 4
+	} else if v["BestCard"], v["Best2nd"], v["Kicker"] = Double(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Doppia coppia di " + String(v["BestCard"]) + String(v["Best2nd"])
+		v["Total"] = 3
+	} else if v["BestCard"] = Pair(p.Hand); v["BestCard"] != 0 {
+		p.PointName = "Coppia di " + String(v["BestCard"])
+		v["Total"] = 2
+	} else {
+		v["BestCard"] = HighCard(p.Hand)
+		p.PointName = "Carta Alta " + String(v["BestCard"])
+		v["Total"] = 1
 	}
-	fmt.Println()
 }
 
-func ChangeCards(hand []*Card, deck *Deck) []*Card {
-	var n int
-	var c1, c2, c3, c4 int
-	var indici []int
+func (p Player) ShoWinner() {
+	fmt.Println("Vince ", p.Name, "con ", p.PointName)
+}
 
-	fmt.Print("Quante carte vuoi cambiare: ")
-	fmt.Scanln(&n)
-
-	if n > 0 && n < 5 {
-		fmt.Print("Inserisci posizione delle carta da tenere: ")
-		fmt.Scanln(&c1, &c2, &c3, &c4)
-		indici = append(indici, c1, c2, c3, c4)
-
-		drawNewCard := deck.DrawHand(n)
-
-		n = 5 - n
-		i := 0
-		var newHand []*Card
-		for n > 0 {
-			n--
-			newHand = append(newHand, hand[indici[i]-1])
-			i++
-		}
-		fmt.Print("Carte ricevute: ")
-		Print(drawNewCard)
-		newHand = append(newHand, drawNewCard...)
-		return newHand
+func (p Player) Valutation(other Player, param string) Player {
+	if p.Value[param] > other.Value[param] {
+		return p
+	} else if other.Value[param] > p.Value[param] {
+		return other
 	}
-	return hand
+	return Player{Name: "pareggio"}
 }
 
 func main() {
+	//crea il deck con carte mescolate e i giocatori facendoli pescare
+	var deck = CreateDeck(2)
+	var p1 = CreatePlayer("Fabio", deck.DrawHand(5))
+	var p2 = CreatePlayer("Fabrizio", deck.DrawHand(5))
+	//stampa i valori
+	p1.Print()
+	p2.Print()
+	//cambio delle carte
+	p1.ChangeCards(deck)
+	p2.ChangeCards(deck)
+	//stampa le carte aggiornate con i cambi
+	p1.Print()
+	p2.Print()
+	//valutazione punteggi
+	p1.CheckScore()
+	p2.CheckScore()
 
-	var deck = CreateDeck(9)
-	for i := 1; i < 5; i++ {
-		hand := deck.DrawHand(5)
-		Print(hand)
-		changed := (ChangeCards(hand, deck))
-		Print(changed)
-		fmt.Println(" Punteggio:", CheckScore(changed))
-
+	if winner := p1.Valutation(*p2, "Total"); winner.Name != "pareggio" {
+		fmt.Println("sono al primo step della value")
+		winner.ShoWinner()
+	} else if winner := p1.Valutation(*p2, "BestCard"); winner.Name != "pareggio" {
+		fmt.Println("sono al secondo step della value")
+		winner.ShoWinner()
+	} else {
+		//unico caso doppia coppia, full non entra per condizione sopra
+		if (p1.Value["Best2nd"] != 0) && (p1.Value["Best2nd"] == p2.Value["Best2nd"]) {
+			//si valuta kicker
+			winner := p1.Valutation(*p2, "Kicker")
+			winner.ShoWinner()
+		} else if p1.Value["Best2nd"] != 0 {
+			winner := p1.Valutation(*p2, "Best2nd")
+			winner.ShoWinner()
+		}
+		//in questo caso si devono validare i punti simili
+		//con anche la carta migliore simile Es: entrambe coppia di A
+		if p1.Value["Total"] == 5 {
+			//caso scala semplice con stesso limite superiore
+			fmt.Println("Partita Patta")
+		} else if p1.Value["Total"] == 1 {
+			//carta alta
+			winner := p1.Draw(*p2, p1.Value["BestCard"])
+			winner.ShoWinner()
+		} else if p1.Value["Total"] == 2 {
+			//coppia
+			winner := p1.Draw(*p2, p1.Value["BestCard"])
+			winner.ShoWinner()
+		} else if p1.Value["Total"] == 7 {
+			//colore
+		} else if p1.Value["Total"] == 9 {
+			//reale
+		}
 	}
 }
