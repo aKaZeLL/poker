@@ -351,12 +351,8 @@ func main() {
 		if p1.Value["Total"] == 5 {
 			//caso scala semplice con stesso limite superiore
 			fmt.Println("Partita Patta")
-		} else if p1.Value["Total"] == 1 {
-			//carta alta
-			winner := p1.Draw(*p2)
-			winner.ShoWinner()
-		} else if p1.Value["Total"] == 2 {
-			//coppia
+		} else if p1.Value["Total"] == 1 || p1.Value["Total"] == 2 {
+			//carta alta e coppia
 			winner := p1.Draw(*p2)
 			winner.ShoWinner()
 		} else if p1.Value["Total"] == 7 {
