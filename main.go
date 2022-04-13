@@ -54,8 +54,9 @@ func CreatePlayer(name string, h []*Card) *Player {
 // mancano colore, reale
 //metodi
 
-func (p Player) Draw(other Player, elem int) Player {
+func (p Player) Draw(other Player) Player {
 	for {
+		elem := p.Value["BestCard"]
 		p.Hand = WithOutElem(p.Hand, elem)
 		other.Hand = WithOutElem(other.Hand, elem)
 		if len(p.Hand) == 0 {
@@ -352,11 +353,11 @@ func main() {
 			fmt.Println("Partita Patta")
 		} else if p1.Value["Total"] == 1 {
 			//carta alta
-			winner := p1.Draw(*p2, p1.Value["BestCard"])
+			winner := p1.Draw(*p2)
 			winner.ShoWinner()
 		} else if p1.Value["Total"] == 2 {
 			//coppia
-			winner := p1.Draw(*p2, p1.Value["BestCard"])
+			winner := p1.Draw(*p2)
 			winner.ShoWinner()
 		} else if p1.Value["Total"] == 7 {
 			//colore
