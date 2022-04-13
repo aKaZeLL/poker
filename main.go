@@ -54,6 +54,15 @@ func CreatePlayer(name string, h []*Card) *Player {
 // mancano colore, reale
 //metodi
 
+func (p Player) FlushDraw(other Player) Player {
+	sPower := map[string]int{"♥": 4, "♦": 3, "♣": 2, "♠": 1}
+	if sPower[p.Hand[0].Seed] > sPower[other.Hand[0].Seed] {
+		return p
+	} else {
+		return other
+	}
+}
+
 func (p Player) Draw(other Player) Player {
 	for {
 		elem := p.Value["BestCard"]
@@ -355,10 +364,10 @@ func main() {
 			//carta alta e coppia
 			winner := p1.Draw(*p2)
 			winner.ShoWinner()
-		} else if p1.Value["Total"] == 7 {
-			//colore
-		} else if p1.Value["Total"] == 9 {
-			//reale
+		} else if p1.Value["Total"] == 7 || p1.Value["Total"] == 9 {
+			//colore maggiore vince
+			winner := p1.FlushDraw(*p2)
+			winner.ShoWinner()
 		}
 	}
 }
