@@ -51,18 +51,7 @@ func CreatePlayer(name string, h []*Card) *Player {
 	return &Player{Name: name, Hand: h, Value: v}
 }
 
-// mancano colore, reale
 //metodi
-
-func (p Player) FlushDraw(other Player) Player {
-	sPower := map[string]int{"♥": 4, "♦": 3, "♣": 2, "♠": 1}
-	if sPower[p.Hand[0].Seed] > sPower[other.Hand[0].Seed] {
-		return p
-	} else {
-		return other
-	}
-}
-
 func (p Player) Draw(other Player) Player {
 	for {
 		elem := p.Value["BestCard"]
@@ -72,8 +61,10 @@ func (p Player) Draw(other Player) Player {
 			break
 		}
 
-		p.CheckScore()
-		other.CheckScore()
+		p.Value["BestCard"] = HighCard(p.Hand)
+		p.PointName = "Kicker " + String(p.Value["BestCard"])
+		other.Value["BestCard"] = HighCard(other.Hand)
+		other.PointName = "Kicker " + String(other.Value["BestCard"])
 
 		if winner := p.Valutation(other, "BestCard"); winner.Name != "pareggio" {
 			return winner
@@ -326,6 +317,29 @@ func main() {
 	var deck = CreateDeck(2)
 	var p1 = CreatePlayer("Fabio", deck.DrawHand(5))
 	var p2 = CreatePlayer("Fabrizio", deck.DrawHand(5))
+
+	//TESTING
+	//"♥", "♦", "♠", "♣"
+	//var slicehand1 []*Card
+	//var slicehand2 []*Card
+	// c1 := New(8, "♣")
+	// c2 := New(4, "♠")
+	// c3 := New(7, "♣")
+	// c4 := New(14, "♦")
+	// c5 := New(14, "♠")
+	// slicehand1 = append(slicehand1, c1, c2, c3, c4, c5)
+
+	// a1 := New(8, "♥")
+	// a2 := New(3, "♦")
+	// a3 := New(7, "♥")
+	// a4 := New(14, "♣")
+	// a5 := New(14, "♥")
+	// slicehand2 = append(slicehand2, a1, a2, a3, a4, a5)
+
+	// var p1 = CreatePlayer("Fabio", slicehand1)
+	// var p2 = CreatePlayer("Fabri", slicehand2)
+	//FINE TEST
+
 	//stampa i valori
 	p1.Print()
 	p2.Print()
@@ -340,34 +354,26 @@ func main() {
 	p2.CheckScore()
 
 	if winner := p1.Valutation(*p2, "Total"); winner.Name != "pareggio" {
-		fmt.Println("sono al primo step della value")
 		winner.ShoWinner()
 	} else if winner := p1.Valutation(*p2, "BestCard"); winner.Name != "pareggio" {
-		fmt.Println("sono al secondo step della value")
 		winner.ShoWinner()
 	} else {
-		//unico caso doppia coppia, full non entra per condizione sopra
-		if (p1.Value["Best2nd"] != 0) && (p1.Value["Best2nd"] == p2.Value["Best2nd"]) {
+		//unico caso doppia coppia
+		if (p1.Value["Kicker"] != 0) && (p1.Value["Best2nd"] == p2.Value["Best2nd"]) {
 			//si valuta kicker
 			winner := p1.Valutation(*p2, "Kicker")
 			winner.ShoWinner()
-		} else if p1.Value["Best2nd"] != 0 {
+		} else if p1.Value["Kicker"] != 0 {
 			winner := p1.Valutation(*p2, "Best2nd")
 			winner.ShoWinner()
-		}
-		//in questo caso si devono validare i punti simili
-		//con anche la carta migliore simile Es: entrambe coppia di A
-		if p1.Value["Total"] == 5 {
-			//caso scala semplice con stesso limite superiore
-			fmt.Println("Partita Patta")
-		} else if p1.Value["Total"] == 1 || p1.Value["Total"] == 2 {
+		} //casi di carta alta e coppia con pareggi
+		if p1.Value["Total"] == 1 || p1.Value["Total"] == 2 {
 			//carta alta e coppia
 			winner := p1.Draw(*p2)
 			winner.ShoWinner()
-		} else if p1.Value["Total"] == 7 || p1.Value["Total"] == 9 {
-			//colore maggiore vince
-			winner := p1.FlushDraw(*p2)
-			winner.ShoWinner()
+		} else {
+			//scala semplice colore e poker pattano
+			fmt.Println("Partita Patta")
 		}
 	}
 }
