@@ -84,11 +84,14 @@ func (p *Player) ChangeCards(deck *Deck) {
 	var n int
 	var c1, c2, c3, c4 int
 	var indici []int
-
-	fmt.Print(p.Name, " quante carte vuoi cambiare: ")
-	fmt.Scanln(&n)
-
-	if n > 0 && n < 5 {
+	// ERRORE QUI SCOpe VARIabile n
+	for n := -1; n < 0 || n >= 5; {
+		fmt.Print(p.Name, " quante carte vuoi cambiare: ")
+		fmt.Scanln(&n)
+		fmt.Println(n)
+	}
+	fmt.Print(n)
+	if n != 0 {
 		fmt.Print("Inserisci posizione delle carta da tenere: ")
 		fmt.Scanln(&c1, &c2, &c3, &c4)
 		indici = append(indici, c1, c2, c3, c4)
@@ -311,6 +314,7 @@ func (p Player) Valutation(other Player, param string) Player {
 	}
 	return Player{Name: "pareggio"}
 }
+
 func Confront(p1, p2 Player) {
 	if winner := p1.Valutation(p2, "Total"); winner.Name != "pareggio" {
 		winner.ShoWinner()
@@ -339,7 +343,7 @@ func Confront(p1, p2 Player) {
 
 func main() {
 	//crea il deck con carte mescolate e i giocatori facendoli pescare
-	var deck = CreateDeck(2)
+	var deck = CreateDeck(8)
 	var p1 = CreatePlayer("Fabio", deck.DrawHand(5))
 	var p2 = CreatePlayer("Fabrizio", deck.DrawHand(5))
 
