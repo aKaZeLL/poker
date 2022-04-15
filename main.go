@@ -311,6 +311,31 @@ func (p Player) Valutation(other Player, param string) Player {
 	}
 	return Player{Name: "pareggio"}
 }
+func Confront(p1, p2 Player) {
+	if winner := p1.Valutation(p2, "Total"); winner.Name != "pareggio" {
+		winner.ShoWinner()
+	} else if winner := p1.Valutation(p2, "BestCard"); winner.Name != "pareggio" {
+		winner.ShoWinner()
+	} else {
+		//unico caso doppia coppia
+		if (p1.Value["Kicker"] != 0) && (p1.Value["Best2nd"] == p2.Value["Best2nd"]) {
+			//si valuta kicker
+			winner := p1.Valutation(p2, "Kicker")
+			winner.ShoWinner()
+		} else if p1.Value["Kicker"] != 0 {
+			winner := p1.Valutation(p2, "Best2nd")
+			winner.ShoWinner()
+		} //casi di carta alta e coppia e colore con pareggi
+		if p1.Value["Total"] == 1 || p1.Value["Total"] == 2 || p1.Value["Total"] == 7 {
+			//carta alta e coppia
+			winner := p1.Draw(p2)
+			winner.ShoWinner()
+		} else {
+			//scala semplice\reale pattano, full poker tris non possono pareggiare
+			fmt.Println("Partita Patta")
+		}
+	}
+}
 
 func main() {
 	//crea il deck con carte mescolate e i giocatori facendoli pescare
@@ -320,20 +345,20 @@ func main() {
 
 	//TESTING
 	//"♥", "♦", "♠", "♣"
-	//var slicehand1 []*Card
-	//var slicehand2 []*Card
-	// c1 := New(8, "♣")
-	// c2 := New(4, "♠")
-	// c3 := New(7, "♣")
-	// c4 := New(14, "♦")
-	// c5 := New(14, "♠")
+	// var slicehand1 []*Card
+	// var slicehand2 []*Card
+	// c1 := New(8, "♦")
+	// c2 := New(4, "♦")
+	// c3 := New(7, "♦")
+	// c4 := New(12, "♦")
+	// c5 := New(14, "♦")
 	// slicehand1 = append(slicehand1, c1, c2, c3, c4, c5)
 
-	// a1 := New(8, "♥")
-	// a2 := New(3, "♦")
-	// a3 := New(7, "♥")
-	// a4 := New(14, "♣")
-	// a5 := New(14, "♥")
+	// a1 := New(8, "♣")
+	// a2 := New(3, "♣")
+	// a3 := New(7, "♣")
+	// a4 := New(12, "♣")
+	// a5 := New(14, "♣")
 	// slicehand2 = append(slicehand2, a1, a2, a3, a4, a5)
 
 	// var p1 = CreatePlayer("Fabio", slicehand1)
@@ -353,27 +378,5 @@ func main() {
 	p1.CheckScore()
 	p2.CheckScore()
 
-	if winner := p1.Valutation(*p2, "Total"); winner.Name != "pareggio" {
-		winner.ShoWinner()
-	} else if winner := p1.Valutation(*p2, "BestCard"); winner.Name != "pareggio" {
-		winner.ShoWinner()
-	} else {
-		//unico caso doppia coppia
-		if (p1.Value["Kicker"] != 0) && (p1.Value["Best2nd"] == p2.Value["Best2nd"]) {
-			//si valuta kicker
-			winner := p1.Valutation(*p2, "Kicker")
-			winner.ShoWinner()
-		} else if p1.Value["Kicker"] != 0 {
-			winner := p1.Valutation(*p2, "Best2nd")
-			winner.ShoWinner()
-		} //casi di carta alta e coppia con pareggi
-		if p1.Value["Total"] == 1 || p1.Value["Total"] == 2 {
-			//carta alta e coppia
-			winner := p1.Draw(*p2)
-			winner.ShoWinner()
-		} else {
-			//scala semplice colore e poker pattano
-			fmt.Println("Partita Patta")
-		}
-	}
+	Confront(*p1, *p2)
 }
