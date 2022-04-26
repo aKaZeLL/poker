@@ -81,16 +81,15 @@ func (d *Deck) DrawHand(n int) []*Card {
 
 //cambio carte mano
 func (p *Player) ChangeCards(deck *Deck) {
-	var n int
+	n := -1
 	var c1, c2, c3, c4 int
 	var indici []int
-	// ERRORE QUI SCOpe VARIabile n
-	for n := -1; n < 0 || n >= 5; {
+
+	for n < 0 || n >= 5 {
 		fmt.Print(p.Name, " quante carte vuoi cambiare: ")
 		fmt.Scanln(&n)
-		fmt.Println(n)
 	}
-	fmt.Print(n)
+
 	if n != 0 {
 		fmt.Print("Inserisci posizione delle carta da tenere: ")
 		fmt.Scanln(&c1, &c2, &c3, &c4)
